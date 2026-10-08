@@ -1,0 +1,9 @@
+vllm==0.28.0
+torch==2.13.0
+transformers==5.10.1
+tensordict==0.10.0
+ray[default]==2.58.0
+torchdata==0.11.0
+TransferQueue==0.1.8
+einops==0.8.2
+ninja==1.13.0
