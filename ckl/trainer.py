@@ -1,4 +1,5 @@
 import copy
+import logging
 import math
 import uuid
 
@@ -68,6 +69,7 @@ class CKLTrainer(PPOTrainerSync):
     def init(self, *args, **kwargs):
         out = super().init(*args, **kwargs)
         self._install_loss_fn()
+        self._check_alignment()
         return out
 
 
@@ -88,6 +90,59 @@ class CKLTrainer(PPOTrainerSync):
                         group_size=int(self.config.actor_rollout_ref.rollout.n))
         self.actor_rollout_wg.set_loss_fn(partial(ckl_loss, config=actor_config, ckl=cfg))
 
+    def _check_alignment(self):
+        fg = self.config.algorithm.get("filter_groups", None)
+        if fg is not None and fg.get("enable", False):
+            logging.getLogger(__name__).warning(
+                "algorithm.filter_groups.enable is set: DAPO filtering discards groups, and a "
+                "discarded `I` leaves its `I+` with nothing to compare against. The CKL term "
+                "will lose those pairs -- watch ckl_pairs.")
+        if self.config.trainer.v1.sampler.get("sync_refill_failed_groups", False):
+            logging.getLogger(__name__).warning(
+                "trainer.v1.sampler.sync_refill_failed_groups is set: it forces gen_batch_size "
+                "to 1 and refills by prompt count, which cannot preserve the `I`/`I+` pairing. "
+                "Refilled groups will not contribute to the CKL term -- watch ckl_pairs.")
+        if self.ckl["twin_interface"] and self.config.data.train_batch_size != 2 * self._gen_batch_size():
+            gen = self._gen_batch_size()
+            why = ""
+            if gen == 1:
+                why = ("\n  data.gen_batch_size has been REWRITTEN to 1 by verl's exact-refill path. It fires "
+                       "when\n  trainer.v1.trainer_mode != 'sync', algorithm.filter_groups.enable=True, or "
+                       "trainer.v1.sampler.sync_refill_failed_groups=True.\n  This arm needs whole-batch "
+                       "fetches: each task is submitted as two prompts and both must land in one batch.")
+            raise ValueError("with the twin interface on, data.train_batch_size must be exactly twice "
+                             "data.gen_batch_size (%d vs %d): each task is submitted as two prompts, `I` and "
+                             "`I+`, and sync mode trains on exactly what it submitted.%s"
+                             % (self.config.data.train_batch_size, gen, why))
+        if not self._reads_anything():
+            return
+        w = self._group_width()
+        actor = self.config.actor_rollout_ref.actor
+        if actor.get("shuffle", False):
+            raise ValueError("actor_rollout_ref.actor.shuffle must be False: the mini-batch iterator would "
+                             "permute rows and split a reading's block across two optimizer steps")
+        if actor.get("ulysses_sequence_parallel_size", 1) != 1:
+            raise ValueError("the readout gathers at absolute packed positions; run with "
+                             "actor_rollout_ref.actor.ulysses_sequence_parallel_size=1")
+        fused_backend = (self.config.actor_rollout_ref.model.get("fused_kernel_options", None)
+                         or {}).get("impl_backend", "torch")
+        if fused_backend != "torch":
+            raise ValueError("model.fused_kernel_options.impl_backend must be 'torch', not %r: the readout "
+                             "takes the hidden state and the output head off FusedLinearForPPO, which only "
+                             "the torch backend's forward calls" % fused_backend)
+        if not self.config.actor_rollout_ref.model.get("use_fused_kernels", False):
+            raise ValueError(
+                "model.use_fused_kernels must be True. Without it verl's forward materialises a full "
+                "(tokens x vocab) logits tensor, and the readout's gather PINS it for the whole backward -- "
+                "37 GiB for one micro-batch of readout rows. With it the forward calls FusedLinearForPPO, "
+                "which is where ckl/verl_hook.py takes the hidden state and the output head so the readout "
+                "can apply that head at its three read positions.")
+        mini = actor.ppo_mini_batch_size * self.config.actor_rollout_ref.rollout.n
+        dp = self._actor_dp_size()
+        if mini % (dp * w):
+            raise ValueError("ppo_mini_batch_size * rollout.n = %d must be a multiple of dp_size * "
+                             "group_width = %d * %d, or a block straddles two mini-batches"
+                             % (mini, dp, w))
 
     def _group_width(self):
         per_rank = (self.config.actor_rollout_ref.actor.ppo_mini_batch_size
@@ -102,6 +157,8 @@ class CKLTrainer(PPOTrainerSync):
     def _reads_anything(self):
         return max(self.ckl["lam_rel"], self.ckl["lam_twin"]) > 0.0
 
+    def _gen_batch_size(self):
+        return self.config.data.get("gen_batch_size", None) or self.config.data.train_batch_size
 
     def _actor_dp_size(self):
         wg = self.actor_rollout_wg

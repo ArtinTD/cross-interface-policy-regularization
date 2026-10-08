@@ -2,6 +2,8 @@ from .label_index import digit_row, label_sites
 
 
 def relabel(ids, table, func_perm, arg_perm=None):
+    if getattr(table, "width", 4) != 4:
+        raise NotImplementedError("two-digit labels only; a single-token alphabet is a separate change")
     out = list(ids)
     for pos, is_arg, label in label_sites(table, out):
         perm = arg_perm if is_arg else func_perm

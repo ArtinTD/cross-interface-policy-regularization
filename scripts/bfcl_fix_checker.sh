@@ -33,14 +33,6 @@ new_find = '''_RAPT_CHECKER_FIX = 1
 
 
 def find_description(func_descriptions, name):
-    """EVERY declaration of `name`, in declaration order -- not the first.
-
-    A perturbation may declare one name twice, and the model is shown both declarations, so a call the
-    interface sanctions under either one is a call the interface sanctions. Returning only the first made
-    which declaration was validated against a fact about declaration order. simple_function_checker takes
-    the list and accepts any declaration that validates; with one declaration the list has one element and
-    the behaviour is unchanged.
-    """
     if type(func_descriptions) == list:
         matches = [f for f in func_descriptions if f["name"] == name]
         return matches or None
@@ -66,9 +58,6 @@ new_head = '''def simple_function_checker(
     model_name: str,
 ):
     if type(func_description) == list:
-        # Any declaration of the called name that sanctions this call makes the call correct. When none
-        # does, the FIRST declaration's failure is what gets reported, so the error message is the one
-        # upstream would have produced.
         reported = None
         for _doc in func_description:
             _r = simple_function_checker(_doc, model_output, possible_answer, language, model_name)
