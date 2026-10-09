@@ -39,7 +39,7 @@ HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 if [ -z "$NVME" ]; then
   echo "usage: bash $0 --scratch SCRATCH_DIR [options]      (also accepted bare, as the first argument)" >&2
-  echo "  required, not defaulted: the path differs per box and a wrong one fills the root volume." >&2
+  echo "  required, not defaulted: the path differs per machine and a wrong one fills the root volume." >&2
   echo "  It is a property of THIS machine, so it is never guessed. \`df -h\` shows what is mounted here." >&2
   exit 2
 fi

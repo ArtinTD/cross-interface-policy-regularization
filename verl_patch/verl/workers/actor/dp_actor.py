@@ -580,7 +580,7 @@ class DataParallelPPOActor(BasePPOActor):
                        'is_gradient_checkpointing', True):
             raise RuntimeError("the shared-prefix readout needs gradient checkpointing enabled: the prefix "
                                "forward's output is not consumed, so nothing else re-gathers its sharded "
-                               "parameters for the backward. Run with GRAD_CKPT=True or PREFIX_CACHE=False.")
+                               "parameters for the backward. Run with GRAD_CKPT=True.")
         _ckpt = getattr(getattr(self.actor_module, '_fsdp_wrapped_module', self.actor_module),
                         '_gradient_checkpointing_func', None)
         if torch.is_grad_enabled() and getattr(_ckpt, 'keywords', {}).get('use_reentrant') is True:

@@ -219,8 +219,7 @@ def main():
                     help="validate the duplicate families with the injected tool declared FIRST")
     ap.add_argument("--decoy-first", action="store_true",
                     help="validate the reward families with the decoy declared ahead of the renamed gold, "
-                         "which is the canon_sw condition that ships in the table and had no way to be "
-                         "checked here before")
+                         "which is the canon_sw condition")
     ap.add_argument("--decoy-instruction", default="default", choices=list(R.INSTRUCTION_STYLES),
                     help="the wording the reward families append to the query; must match the build being "
                          "validated, or this checks data that was never written")

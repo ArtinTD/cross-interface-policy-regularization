@@ -16,7 +16,7 @@ NVME=${NVME:-${1:-}}
 ENVNAME=${2:-${ENVNAME:-ckl090}}
 if [ -z "$NVME" ]; then
   echo "usage: bash $0 SCRATCH_DIR [ENVNAME]" >&2
-  echo "  SCRATCH_DIR is the data volume this box's env, HOME and caches live on (\`df -h\` shows what is" >&2
+  echo "  SCRATCH_DIR is the data volume this machine's env, HOME and caches live on (\`df -h\` shows what is" >&2
   echo "  mounted here). It is required, not defaulted: a wrong one fills the root volume." >&2
   exit 2
 fi

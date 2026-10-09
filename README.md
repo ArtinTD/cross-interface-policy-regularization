@@ -198,7 +198,7 @@ Set them in front of the command. Each changes how the same update is computed, 
 | env var | default | effect |
 |---|---|---|
 | `MAX_TOKEN_LEN` | `12288` | tokens per micro-batch; grad-accum above the `PROMPT_LEN + RESPONSE_LEN` floor |
-| `READOUT_BATCH` | `4` | slots sharing one readout forward, so passes per mini-batch = (`IDENTITY_PROMPTS` + `IDENTITY_SLOTS`) / this. Per-pass cost is ~92% fixed FSDP traversal, so this sets the readout's wall time. Under `PREFIX_CACHE=True` the peak does not scale with it; under `False` the peak *is* one batch's graph and this is what to halve |
+| `READOUT_BATCH` | `4` | slots sharing one readout forward, so passes per mini-batch = (`IDENTITY_PROMPTS` + `IDENTITY_SLOTS`) / this. Per-pass cost is ~92% fixed FSDP traversal, so this sets the readout's wall time. The shared prefix is computed once per forward, so the peak does not scale with it |
 | `ROLLOUT_TP` | `1` | vLLM tensor parallelism. Raise it when the weights approach the rollout budget (a 14B is 28 GiB) |
 | `ROLLOUT_MEM` | `0.45` | vLLM `gpu_memory_utilization`. Below the resident weights every sequence is preempted to CPU swap |
 | `OPT_OFFLOAD` | `False` | Adam moments to host between stages (verl's own flag). 13.75 GiB at 14B, a tensor move and not a host-side optimizer — but loaded across the whole policy update, so it does **not** cover the backward's peak |

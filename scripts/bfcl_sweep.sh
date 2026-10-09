@@ -14,7 +14,6 @@ FIXMARK=$BFCL_DIR/bfcl_eval/eval_checker/ast_eval/.rapt_checker_fix
 
 HANDLERS="bfcl_eval/model_handler/local_inference/rlla_handler.py
 bfcl_eval/model_handler/local_inference/qwen_fc_handler.py
-bfcl_eval/model_handler/api_inference/claude.py
 bfcl_eval/constants/model_config.py
 bfcl_eval/constants/default_prompts.py"
 _hsum=$( { for _h in $HANDLERS; do [ -f "$BFCL_DIR/$_h" ] && cat "$BFCL_DIR/$_h"; done \

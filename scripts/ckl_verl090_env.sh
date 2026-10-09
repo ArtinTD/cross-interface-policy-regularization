@@ -15,7 +15,7 @@ set -- "${SCRATCH_ARGS[@]+"${SCRATCH_ARGS[@]}"}"
 NVME=${NVME:-${1:-}}
 if [ -z "$NVME" ]; then
   echo "usage: bash $0 SCRATCH_DIR          (the data volume the env, HOME and every cache go under)" >&2
-  echo "  it is required, not defaulted: the path differs per box and a wrong one fills the root volume." >&2
+  echo "  it is required, not defaulted: the path differs per machine and a wrong one fills the root volume." >&2
   echo "  It is a property of THIS machine, so it is never guessed. \`df -h\` shows what is mounted here." >&2
   exit 2
 fi
@@ -43,7 +43,7 @@ echo "env      $ENVNAME  ->  $PREFIX"
 echo "verl     $VERL_TAG -> $VERL_DIR"
 echo "code     $CODE"
 echo "versions $SPEC"
-[ -f "$SPEC" ] || { echo "FATAL: no pinned spec at $SPEC -- deploy code/env/ with the repo." >&2; exit 1; }
+[ -f "$SPEC" ] || { echo "FATAL: no pinned spec at $SPEC" >&2; exit 1; }
 echo "=============================================================="
 
 if [ "${SKIP_INSTALL:-0}" != 1 ]; then

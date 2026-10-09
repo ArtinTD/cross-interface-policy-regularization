@@ -139,7 +139,6 @@ EPOCHS=${EPOCHS:-15}
 : "${OPT_PARK:=False}"
 : "${IDENTITY_SLOTS:=64}"; : "${IDENTITY_PROMPTS:=16}"; : "${N_PERM:=1}"
 : "${READOUT_BATCH:=4}"
-: "${PREFIX_CACHE:=True}"; : "${GRAD_PROBE_EVERY:=10}"
 if [ -z "$GPUS" ]; then
   GPUS=$( { nvidia-smi --query-gpu=index --format=csv,noheader 2>/dev/null || true; } | wc -l | tr -d ' ')
 fi
@@ -169,7 +168,7 @@ cat <<EOF
   python          $PYBIN
   recipe          batch=$TRAIN_BATCH mini=$PPO_MINI micro=$PPO_MICRO n=$ROLLOUT_N epochs=$EPOCHS
   readout         added-tool $IDENTITY_SLOTS rows/step (whole groups), relabelling $IDENTITY_PROMPTS
-                  prompts x1 rollout, $READOUT_BATCH per forward, shared prefix=$PREFIX_CACHE, n_perm=$N_PERM
+                  prompts x1 rollout, $READOUT_BATCH per forward, n_perm=$N_PERM
   memory          gpus=$GPUS max_token_len=$MAX_TOKEN_LEN grad_ckpt=$GRAD_CKPT ref_offload=$REF_OFFLOAD
                   rollout_mem=$ROLLOUT_MEM rollout_tp=$ROLLOUT_TP opt_offload=$OPT_OFFLOAD
                   opt_park=$OPT_PARK
@@ -214,7 +213,6 @@ exec "$PYBIN" -m verl.trainer.main_ppo \
     +actor_rollout_ref.actor.consistency_identity_slots="$IDENTITY_SLOTS" \
     +actor_rollout_ref.actor.consistency_identity_prompts="$IDENTITY_PROMPTS" \
     +actor_rollout_ref.actor.consistency_readout_batch="$READOUT_BATCH" \
-    +actor_rollout_ref.actor.consistency_prefix_cache="$PREFIX_CACHE" \
     +actor_rollout_ref.actor.consistency_n_perm="$N_PERM" \
     algorithm.kl_ctrl.kl_coef=0.001 \
     trainer.critic_warmup=0 \

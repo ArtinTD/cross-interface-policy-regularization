@@ -9,9 +9,9 @@ CHECK=0
 
 [ -d "$SRC/verl" ] || { echo "FATAL: no overlay at $SRC" >&2; exit 1; }
 if [ ! -f "$DST/verl/trainer/main_ppo.py" ]; then
-  [ "$CHECK" = 1 ] && { echo "submodule toolrl/ is EMPTY -- run: git submodule update --init"; exit 1; }
-  echo "toolrl/ is empty; initialising the submodule"
-  git -C "$HERE" submodule update --init --recursive toolrl
+  echo "no ToolRL checkout at $DST. Clone it at the pinned commit:" >&2
+  echo "  git clone https://github.com/qiancheng0/ToolRL.git $DST && git -C $DST checkout $BASE" >&2
+  exit 1
 fi
 have=$(git -C "$DST" rev-parse HEAD 2>/dev/null || echo none)
 if [ "$have" != "$BASE" ]; then

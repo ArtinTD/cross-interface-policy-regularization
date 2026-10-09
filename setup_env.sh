@@ -23,7 +23,7 @@ while [ $# -gt 0 ]; do
   esac
 done
 [ ${#KINDS[@]} -gt 0 ] || [ "$CONDA_ONLY" = 1 ] \
-  || { echo "give at least one --kind train|eval|serve|tau, or --conda-only" >&2; exit 2; }
+  || { echo "give at least one --kind train|eval|serve, or --conda-only" >&2; exit 2; }
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 if [ -z "$SCRATCH" ]; then
@@ -127,7 +127,7 @@ serve)
   "$BIN/pip" install -q 'ninja==1.13.0'
   echo "serve env  $BIN"
   ;;
-*) echo "unknown --kind $kind (train|eval|serve|tau)" >&2; exit 2 ;;
+*) echo "unknown --kind $kind (train|eval|serve)" >&2; exit 2 ;;
 esac
 done
 echo

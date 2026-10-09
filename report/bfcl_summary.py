@@ -76,13 +76,12 @@ def main():
 
     order = ["clean", "query_typos", "redundant"] + ["same_name_" + c for c in "ABCDE"] + [
         "cost_decoy", "cost_decoy_nt", "cost_decoy_abbrev",
-        "latency_decoy", "latency_decoy_nt", "latency_decoy_abbrev"] + [
-        "ibm_p_quest", "ibm_enrich", "ibm_enrich_fdesc", "ibm_enrich_pdesc"]
+        "latency_decoy", "latency_decoy_nt", "latency_decoy_abbrev"]
     types.sort(key=lambda t: (order.index(t) if t in order else len(order), t))
 
     print("=== %s : %s ===" % (a.model, a.out_dir))
     print("accuracy %% +-95%% Wilson (n) per cell%s" %
-          ("; gateway-errored requests dropped" if a.drop_inference_errors else ""))
+          ("; inference-errored requests dropped" if a.drop_inference_errors else ""))
     print("%-22s %s" % ("perturbation", "  ".join("%-26s" % v for v in variants)))
     for t in types:
         row = []
@@ -99,7 +98,7 @@ def main():
               "    decoy-first cell. Re-score it: the fix is unconditional and needs no regeneration.")
     errs = sum(c["errors"] for c in cells.values())
     if errs:
-        print("\ngateway/inference errors across cells: %d%s" %
+        print("\ninference errors across cells: %d%s" %
               (errs, "" if a.drop_inference_errors else "  (counted as wrong; pass --drop-inference-errors)"))
     if a.json:
         json.dump({"%s/%s" % k: v for k, v in cells.items()}, open(a.json, "w"), indent=1)

@@ -103,8 +103,7 @@ def review_tree(out_dir, model, data_root, parts=()):
 
 def discover_root(out, model):
     scratch = os.path.dirname(os.path.dirname(out))
-    cands = sorted(glob.glob(os.path.join(scratch, "bfcl_data", "*"))) + \
-        [os.path.join(scratch, "bfcl_ibm")]
+    cands = sorted(glob.glob(os.path.join(scratch, "bfcl_data", "*")))
     cells = [(v, t) for v, t, _ in
              [(os.path.basename(os.path.dirname(c)), os.path.basename(c), c)
               for c in glob.glob(os.path.join(out, "*", "*")) if os.path.isdir(c)]
@@ -155,9 +154,8 @@ def main():
     if not root or not os.path.isdir(root):
         raise SystemExit("no data tree for %s\n  The queries are in NEITHER result/ nor score/ -- they live "
                          "in the data files, and which data\n  a cell was run on is recorded nowhere else. "
-                         "Pass --data-root DIR (the tree the run used:\n  $S/bfcl_data/<parts>, or "
-                         "$S/bfcl_ibm for --benchmark ibm). A run swept after this\n  change records it in "
-                         "<out>/.data_root and needs no flag." % out)
+                         "Pass --data-root DIR (the tree the run used:\n  $S/bfcl_data/<parts>). eval_open.sh records it in "
+                         "<out>/.data_root, and then no flag is needed." % out)
     a.out = out
     rows_ = review_tree(a.out, a.model, root, parts)
     if not rows_:

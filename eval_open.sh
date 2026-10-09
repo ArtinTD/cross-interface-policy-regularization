@@ -4,7 +4,6 @@ set -euo pipefail
 MODEL=""; TAG=""; SERVER=""; GPU=""; PORT=""; OUT=""; DATA=""; SRCDATA=""; BFCL_DIR=""
 BFCL_BIN=""; SERVE_BIN=""; SCRATCH=""; PARTS=""; VARIANTS=""; TYPES="ALL"; THREADS=""; DUP_FIRST=0
 SCORE_ONLY=0
-BENCH="ladder"
 DECOY_INSTR="default"
 FC=0; TOOL_PARSER="qwen3_coder"
 _need() {
@@ -111,7 +110,7 @@ case "$DECOY_INSTR" in
   default) DATA=${DATA:-$SCRATCH/bfcl_data/$_dname} ;;
   *) DATA=${DATA:-$SCRATCH/bfcl_data/$_dname-$(echo "$DECOY_INSTR" | tr '+' '_')} ;;
 esac
-if [ -d "$DATA/clean/normal" ] && [ "$BENCH" != ibm ]; then
+if [ -d "$DATA/clean/normal" ]; then
   _have=$( [ -f "$DATA/decoy_instruction.txt" ] && cat "$DATA/decoy_instruction.txt" || echo default )
   if [ "$_have" != "$DECOY_INSTR" ]; then
     echo "the data tree $DATA was built with --decoy-instruction $_have, but this run asks for" >&2
@@ -124,7 +123,7 @@ fi
 if [ ! -d "$DATA/clean/normal" ]; then
   SRCDATA=${SRCDATA:-$SCRATCH/bfcl_pristine}
   [ -d "$SRCDATA/possible_answer" ] || PY="$EVAL_PY" bash "$HERE/scripts/bfcl_seed_pristine.sh" "$SRCDATA"
-  echo "building $BENCH data -> $DATA"
+  echo "building BFCL data -> $DATA"
   PY="$EVAL_PY" SRCDATA="$SRCDATA" BFCL_SRC="$INST" OUT="$DATA" PARTS="$PARTS" DUP_FIRST="$DUP_FIRST" \
       DECOY_INSTR="$DECOY_INSTR" bash "$HERE/scripts/bfcl_build_data.sh"
   printf '%s\n' "$PARTS" > "$DATA/parts.txt"
@@ -146,8 +145,7 @@ stop_server() { [ -n "$SPID" ] && kill "$SPID" 2>/dev/null || true; }
 trap stop_server EXIT INT TERM
 _isuf=""
 [ "$DECOY_INSTR" = default ] || _isuf="-$(echo "$DECOY_INSTR" | tr '+' '_')"
-if [ "$BENCH" = ibm ]; then OUT=${OUT:-$SCRATCH/bfcl_out/$TAG-ibm$_isuf}
-else OUT=${OUT:-$SCRATCH/bfcl_out/$TAG$_isuf}; fi
+OUT=${OUT:-$SCRATCH/bfcl_out/$TAG$_isuf}
 mkdir -p "$OUT"
 if [ "$SCORE_ONLY" = 1 ]; then
   echo "--score-only: no model is served. Cells with responses are re-scored; a cell WITHOUT them is skipped"

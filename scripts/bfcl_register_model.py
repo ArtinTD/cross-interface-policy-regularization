@@ -32,13 +32,6 @@ SPECS = {
     "qwenfc": dict(handler="QwenFCHandler", anchor="local_inference_model_map = {",
                    url="https://huggingface.co/Qwen/Qwen3.5-4B", org="Qwen",
                    license="apache-2.0", fc=True, dot=True),
-    "claude": dict(handler="ClaudeHandler", anchor="api_inference_model_map = {",
-                   url="https://www.anthropic.com/claude", org="Anthropic",
-                   license="Proprietary"),
-    "openai": dict(handler="OpenAICompletionsHandler", anchor="api_inference_model_map = {",
-                   url="https://openai.com", org="OpenAI", license="Proprietary"),
-    "openai-responses": dict(handler="OpenAIResponsesHandler", anchor="api_inference_model_map = {",
-                             url="https://openai.com", org="OpenAI", license="Proprietary"),
 }
 
 
