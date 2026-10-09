@@ -37,7 +37,6 @@ def find_description(func_descriptions, name):
         matches = [f for f in func_descriptions if f["name"] == name]
         return matches or None
     else:
-        # it is a dict, there is only one function
         return func_descriptions'''
 assert s.count(old_find) == 1, "find_description is not in the expected form; upstream changed"
 s = s.replace(old_find, new_find)
@@ -77,12 +76,7 @@ s = s.replace(old_head, new_head)
 old_simple = '''        return simple_function_checker(
             func_description[0], model_output[0], possible_answer[0], language, model_name
         )'''
-new_simple = '''        # Resolve the expected declaration by the GOLD KEY, not by declaration order. Taking
-        # func_description[0] is only correct when the menu holds exactly one tool; once a perturbation
-        # adds one, a decoy declared first is demanded in the gold's place -- correct calls rejected,
-        # calls to the decoy accepted. A row whose gold names nothing declared falls back to upstream's
-        # choice so its error message is unchanged.
-        doc = func_description[0]
+new_simple = '''        doc = func_description[0]
         if type(func_description) == list and isinstance(possible_answer[0], dict):
             match = find_description(func_description, next(iter(possible_answer[0]), None))
             if match is not None:
